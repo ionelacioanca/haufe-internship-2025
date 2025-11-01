@@ -1,1 +1,1 @@
-# haufe-internship-2025
+# hackathon-challange

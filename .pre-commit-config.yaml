@@ -1,0 +1,12 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ai-code-review
+        name: AI Code Review Assistant
+        entry: python -m orchestrator.main
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        verbose: true
+        fail_fast: false

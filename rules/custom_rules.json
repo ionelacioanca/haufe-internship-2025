@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "project_guidelines": [
+        "All functions must include a docstring.",
+        "Use f-strings instead of string concatenation.",
+        "Avoid global variables unless necessary.",
+        "Follow snake_case naming for variables and functions."
+      ]
+    },
+    "new rule",
+    "rule",
+    "rule and run again"
+  ]
+}

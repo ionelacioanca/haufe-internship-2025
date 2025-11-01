@@ -1,0 +1,36 @@
+ai-code-review/
+│
+├── orchestrator/                 # main backend logic
+│   ├── __init__.py
+│   ├── main.py                   # entry point (CLI)
+│   ├── analyzers.py              # sruns static analyzers (Ruff, ESLint, Bandit, etc.)
+│   ├── ranking.py                # prioritizes findings
+│   ├── llm.py                    # talks to the local AI model (Ollama / vLLM)
+│   ├── report.py                 # builds markdown / HTML reports
+│   └── diff.py                   # (optional) applies or saves code diffs
+│
+├── web/                          # optional FastAPI server (for a web dashboard)
+│   ├── __init__.py
+│   └── api.py
+│
+├── rules/                        # configs for analyzers
+│   ├── ruff.toml
+│   ├── bandit.yml
+│   ├── eslint.config.cjs
+│   └── semgrep.yml
+│
+├── reports/                      # generated outputs
+│   ├── review.md
+│   ├── review.html
+│   └── findings.sarif
+│
+├── patches/                      # AI-suggested fixes (git patches)
+│
+├── sample/                       # example project to test reviews on
+│   ├── app.py
+│   └── script.js
+│
+├── requirements.txt              # Python dependencies
+├── package.json                  # JS/TS dependencies for ESLint
+├── .gitignore
+└── README.md

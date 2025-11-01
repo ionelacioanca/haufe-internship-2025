@@ -1,0 +1,54 @@
+# ------------------------
+# Python general
+# ------------------------
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ------------------------
+# Virtual environments
+# ------------------------
+venv/
+.env/
+env/
+ENV/
+.venv/
+
+# ------------------------
+# IDE / Editor files
+# ------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------
+# OS files
+# ------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------
+# Logs & temp
+# ------------------------
+*.log
+*.tmp
+*.bak
+
+# ------------------------
+# Project specific
+# ------------------------
+reports/
+patches/
+rules/__pycache__/
+sample/__pycache__/
+orchestrator/__pycache__/
+
+# Do not commit Ollama models or cache
+ollama/
+models/

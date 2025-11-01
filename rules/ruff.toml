@@ -1,0 +1,12 @@
+# ruff.toml — define standard coding guidelines
+line-length = 88
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "W", "C90"]
+ignore = ["E501"]  # ignore long lines (optional)
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

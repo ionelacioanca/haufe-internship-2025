@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Code Review Assistant</title>
+  <style>
+    body {font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7fb; margin: 0; padding: 0;}
+    header {background: #004aad; color: white; padding: 20px 30px; font-size: 22px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+    main {max-width: 1100px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); padding: 25px 40px;}
+    h2 {border-bottom: 2px solid #004aad; padding-bottom: 5px;}
+    input, textarea {width: 100%; padding: 10px; margin-top: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px;}
+    button {background: #004aad; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 15px;}
+    button:hover {background: #003b8a;}
+    footer {text-align: center; font-size: 14px; color: #777; padding: 20px;}
+    pre {background:#111;color:#0f0;padding:15px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;margin-top:10px;}
+    .rules-box {background:#f2f7ff; padding:15px; border-radius:8px; margin-top:20px; border:1px solid #cde;}
+    hr {margin: 30px 0;}
+    .accordion {border:1px solid #ccc;border-radius:8px;margin-bottom:10px;}
+    .accordion-header {background:#e9f0ff;padding:10px 15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;}
+    .accordion-content {display:none;padding:10px 20px;white-space:pre-wrap;background:#fafbff;}
+    .accordion-content.show {display:block;}
+    .toggle-btn {background:#004aad;color:white;border:none;padding:5px 10px;border-radius:5px;}
+    .toggle-btn:hover {background:#003b8a;}
+    .comment-form {background:#f9f9f9;padding:15px;border-radius:10px;margin-top:20px;border:1px solid #ddd;}
+  </style>
+</head>
+<body>
+  <header>💡 AI Code Review Assistant</header>
+
+  <main>
+    <!-- File Selection and Review -->
+    <h2>🎯 Select File for Review</h2>
+    <form id="analyzeForm">
+      <input type="text" id="filePath" placeholder="Ex: sample/app.py" style="width:70%; padding:8px;">
+      <button type="submit">Run Code Review</button>
+    </form>
+    <div id="reviewStatus" style="margin-top:10px; font-weight:bold; color:#004aad;"></div>
+
+    <hr>
+
+    <!-- AI Report Accordion -->
+    <h2>🧾 AI Code Review Report</h2>
+    <div id="accordion-container"></div>
+
+    <h2>💬 Developer Comment</h2>
+<form method="POST" action="/submit">
+  <textarea name="comment" placeholder="Write your comment here..." rows="3" required></textarea>
+  <button type="submit">Add Comment</button>
+</form>
+
+
+    <hr>
+
+    <!-- Auto Fix -->
+    <h2>🧠 Auto Fix Suggestions</h2>
+    <button id="generatePatch">Generate Patch</button>
+    <pre id="patchOutput"></pre>
+    <button id="applyPatch" style="display:none; background:#007b00;">Apply Patch</button>
+
+    <hr>
+
+    <!-- Custom Rules -->
+    <div class="rules-box">
+      <h2>⚙️ Add Custom Coding Rule</h2>
+      <form id="ruleForm">
+        <textarea id="ruleInput" placeholder="Enter your new coding rule..." rows="3"></textarea>
+        <button type="submit">Add Rule</button>
+      </form>
+      <pre id="ruleOutput"></pre>
+    </div>
+
+    <hr>
+
+    <!-- Git Commit -->
+    <h2>🧩 Git Commit</h2>
+    <button id="runCommit">Commit Changes</button>
+    <pre id="commitOutput"></pre>
+
+    <footer>AI-Powered Code Review Tool — Built with ❤️ by Ionela</footer>
+  </main>
+
+  <script>
+    // --- Render Markdown as accordion ---
+    function renderAccordion(text) {
+      const container = document.getElementById("accordion-container");
+      container.innerHTML = "";
+      const sections = text.split(/^### /gm).filter(Boolean);
+      for (const section of sections) {
+        const lines = section.trim().split("\n");
+        const title = lines[0].trim();
+        const content = lines.slice(1).join("\n").trim();
+
+        const accordion = document.createElement("div");
+        accordion.classList.add("accordion");
+        accordion.innerHTML = `
+          <div class="accordion-header">
+            <span>${title}</span>
+            <button class="toggle-btn">Show</button>
+          </div>
+          <div class="accordion-content">${content}</div>
+        `;
+        container.appendChild(accordion);
+      }
+
+      container.addEventListener("click", (e) => {
+        if (e.target.classList.contains("toggle-btn")) {
+          const content = e.target.closest(".accordion").querySelector(".accordion-content");
+          const open = content.classList.toggle("show");
+          e.target.textContent = open ? "Hide" : "Show";
+        }
+      });
+    }
+
+    // --- Run analysis for a specific file ---
+    document.getElementById("analyzeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const file = document.getElementById("filePath").value.trim();
+      const statusBox = document.getElementById("reviewStatus");
+
+      if (!file) {
+        statusBox.textContent = "⚠️ Please enter a file path (e.g., sample/app.py)";
+        statusBox.style.color = "red";
+        return;
+      }
+
+      statusBox.textContent = "Running detailed AI Code Review... ⏳";
+      statusBox.style.color = "#004aad";
+
+      try {
+        const res = await fetch("/analyze_file", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filepath: file })
+        });
+
+        const data = await res.json();
+        statusBox.textContent = data.status || "⚠️ Unexpected response.";
+
+        if (data.report) {
+          renderAccordion(data.report);
+        }
+      } catch (err) {
+        statusBox.textContent = "❌ Error running review: " + err;
+        statusBox.style.color = "red";
+      }
+    });
+
+    // --- Add Custom Rule ---
+    document.getElementById("ruleForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const ruleText = document.getElementById("ruleInput").value.trim();
+      const output = document.getElementById("ruleOutput");
+
+      if (!ruleText) {
+        output.style.display = "block";
+        output.textContent = "⚠️ Please enter a rule before submitting.";
+        return;
+      }
+
+      output.style.display = "block";
+      output.textContent = "Adding rule... ⏳";
+
+      try {
+        const res = await fetch("/add_rule", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ rule: ruleText })
+        });
+
+        const data = await res.json();
+        output.textContent = data.message;
+        if (data.status === "success") {
+          document.getElementById("ruleInput").value = "";
+        }
+      } catch (err) {
+        output.textContent = "❌ Error adding rule: " + err;
+      }
+    });
+
+   // --- Generate Auto-Fix Patch (uses last analyzed file) ---
+document.getElementById("generatePatch").addEventListener("click", async () => {
+  const patchBox = document.getElementById("patchOutput");
+  const applyBtn = document.getElementById("applyPatch");
+
+  patchBox.style.display = "block";
+  patchBox.textContent = `🔄 Generating auto-fix for last analyzed file...`;
+
+  try {
+    const res = await fetch("/generate_autofix", { method: "POST" });
+    const data = await res.json();
+    patchBox.textContent = `${data.status}\n\n${data.patch}`;
+    if (data.patch && data.patch.trim()) {
+      applyBtn.style.display = "inline-block";
+      applyBtn.dataset.filename = data.file;
+    }
+  } catch (err) {
+    patchBox.textContent = "❌ Error generating patch:\n" + err;
+  }
+});
+
+    // --- Apply patch for that file ---
+    document.getElementById("applyPatch").addEventListener("click", async (e) => {
+      const file = e.target.dataset.filename;
+      const patchBox = document.getElementById("patchOutput");
+      patchBox.textContent += `\n\n⚙️ Applying patch to ${file}...`;
+
+      try {
+        const res = await fetch("/apply_autofix", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file })
+        });
+        const data = await res.json();
+        patchBox.textContent += "\n" + (data.status || "⚠️ Unknown result.");
+      } catch (err) {
+        patchBox.textContent += "\n❌ Error applying patch:\n" + err;
+      }
+    });
+
+    // --- Git Commit ---
+    document.getElementById("runCommit").addEventListener("click", async () => {
+      const outputBox = document.getElementById("commitOutput");
+      outputBox.style.display = "block";
+      outputBox.textContent = "Running commit... please wait ⏳";
+
+      try {
+        const res = await fetch("/commit", { method: "POST" });
+        const data = await res.json();
+        outputBox.textContent = `${data.status || "❌ Unknown"}\n\n${data.output || ""}`;
+      } catch (err) {
+        outputBox.textContent = "❌ Error running commit:\n" + err;
+      }
+    });
+  </script>
+</body>
+</html>
